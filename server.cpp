@@ -22,7 +22,7 @@ void handleClient(int client_socket) {
             }
         }
     }
-    close(socket);
+    close(client_socket);
 }
 
 int main() {
