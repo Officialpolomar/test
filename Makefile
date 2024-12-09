@@ -3,14 +3,19 @@ CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -g
 
 # Directories
-BUILD_DIR = out
-CLIENT_SOURCES = client.cpp packet.cpp
-SERVER_SOURCES = server.cpp packet.cpp
-HEADERS = util.h
+SRC_DIR = src
+BUILD_DIR = build
+CLIENT_DIR = $(SRC_DIR)/client
+SERVER_DIR = $(SRC_DIR)/server
+PROTOCOL_DIR = $(SRC_DIR)/protocol
+
+# Source files
+CLIENT_SOURCES = $(CLIENT_DIR)/client.cpp $(PROTOCOL_DIR)/packet.cpp
+SERVER_SOURCES = $(SERVER_DIR)/server.cpp $(PROTOCOL_DIR)/packet.cpp
 
 # Object files
-CLIENT_OBJECTS = $(addprefix $(BUILD_DIR)/, $(CLIENT_SOURCES:.cpp=.o))
-SERVER_OBJECTS = $(addprefix $(BUILD_DIR)/, $(SERVER_SOURCES:.cpp=.o))
+CLIENT_OBJECTS = $(BUILD_DIR)/client.o $(BUILD_DIR)/packet_client.o
+SERVER_OBJECTS = $(BUILD_DIR)/server.o $(BUILD_DIR)/packet_server.o
 
 # Output binaries
 CLIENT_TARGET = $(BUILD_DIR)/client
@@ -19,25 +24,31 @@ SERVER_TARGET = $(BUILD_DIR)/server
 # Default target: build both executables
 all: $(CLIENT_TARGET) $(SERVER_TARGET)
 
-# Ensure the build directory exists
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
-
 # Client executable
-$(CLIENT_TARGET): $(CLIENT_OBJECTS) | $(BUILD_DIR)
+$(CLIENT_TARGET): $(CLIENT_OBJECTS)
 	$(CXX) $(CXXFLAGS) -o $@ $(CLIENT_OBJECTS)
 
 # Server executable
-$(SERVER_TARGET): $(SERVER_OBJECTS) | $(BUILD_DIR)
+$(SERVER_TARGET): $(SERVER_OBJECTS)
 	$(CXX) $(CXXFLAGS) -o $@ $(SERVER_OBJECTS)
 
-# Compile each source file into an object file
-$(BUILD_DIR)/%.o: %.cpp $(HEADERS) | $(BUILD_DIR)
+# Compile client object files
+$(BUILD_DIR)/client.o: $(CLIENT_DIR)/client.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Clean up build files
+$(BUILD_DIR)/packet_client.o: $(PROTOCOL_DIR)/packet.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Compile server object files
+$(BUILD_DIR)/server.o: $(SERVER_DIR)/server.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/packet_server.o: $(PROTOCOL_DIR)/packet.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Clean up object and executable files
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -f $(BUILD_DIR)/*.o $(BUILD_DIR)/client $(BUILD_DIR)/server
 
 # Run commands
 run-client: $(CLIENT_TARGET)
