@@ -26,5 +26,6 @@ void sendPacket(int socket_fd, const Packet& packet) {
 Packet receivePacket(int socket_fd) {
     Packet packet;
     recv(socket_fd, &packet, sizeof(packet), 0);
+    
     return packet;
 }
