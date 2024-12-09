@@ -1,14 +1,4 @@
-#include <iostream>
-#include <string>
-#include <vector>
-#include <cstring>
-#include <thread>
-#include <sys/socket.h>
-
-struct Packet {
-    char header[10];   // e.g., "TEXT", "AUDIO", "VIDEO"
-    char data[1024];   // Payload
-};
+#include "packet.hpp"
 
 Packet createPacket(const std::string& header, const std::string& message) {
     Packet packet;
