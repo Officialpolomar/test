@@ -1,63 +1,56 @@
-# Compiler and flags
+# Compiler settings
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -g
+CXXFLAGS = -std=c++17 -Wall -pthread
+FLTK_FLAGS = $(shell fltk-config --use-images --cxxflags --ldflags)
+INCLUDES = -I/opt/homebrew/include
+LIBS = -L/opt/homebrew/lib
 
 # Directories
-SRC_DIR = src
 BUILD_DIR = build
-CLIENT_DIR = $(SRC_DIR)/client
-SERVER_DIR = $(SRC_DIR)/server
-PROTOCOL_DIR = $(SRC_DIR)/protocol
+SRC_DIR = .
+
+# Output executables
+SERVER_TARGET = $(BUILD_DIR)/server
+CLIENT_TARGET = $(BUILD_DIR)/client
 
 # Source files
-CLIENT_SOURCES = $(CLIENT_DIR)/client.cpp $(PROTOCOL_DIR)/packet.cpp
-SERVER_SOURCES = $(SERVER_DIR)/server.cpp $(PROTOCOL_DIR)/packet.cpp
+SERVER_SOURCES = server.cpp
+CLIENT_SOURCES = client.cpp
 
-# Object files
-CLIENT_OBJECTS = $(BUILD_DIR)/client.o $(BUILD_DIR)/packet_client.o
-SERVER_OBJECTS = $(BUILD_DIR)/server.o $(BUILD_DIR)/packet_server.o
+# Default username for testing client
+DEFAULT_USERNAME = TestUser
 
-# Output binaries
-CLIENT_TARGET = $(BUILD_DIR)/client
-SERVER_TARGET = $(BUILD_DIR)/server
+# Create build directory if it doesn't exist
+$(shell mkdir -p $(BUILD_DIR))
 
-# Default target: build both executables
-all: $(CLIENT_TARGET) $(SERVER_TARGET)
+.PHONY: all clean run-server run-client
 
-# Client executable
-$(CLIENT_TARGET): $(CLIENT_OBJECTS)
-	$(CXX) $(CXXFLAGS) -o $@ $(CLIENT_OBJECTS)
+all: $(SERVER_TARGET) $(CLIENT_TARGET)
 
-# Server executable
-$(SERVER_TARGET): $(SERVER_OBJECTS)
-	$(CXX) $(CXXFLAGS) -o $@ $(SERVER_OBJECTS)
+$(SERVER_TARGET): $(SERVER_SOURCES)
+	@echo "Building server..."
+	$(CXX) $(CXXFLAGS) $^ -o $@
+	@echo "Server build complete"
 
-# Compile client object files
-$(BUILD_DIR)/client.o: $(CLIENT_DIR)/client.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+$(CLIENT_TARGET): $(CLIENT_SOURCES)
+	@echo "Building client..."
+	$(CXX) $(CXXFLAGS) $(FLTK_FLAGS) $(INCLUDES) $(LIBS) $^ -o $@
+	@echo "Client build complete"
 
-$(BUILD_DIR)/packet_client.o: $(PROTOCOL_DIR)/packet.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-# Compile server object files
-$(BUILD_DIR)/server.o: $(SERVER_DIR)/server.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-$(BUILD_DIR)/packet_server.o: $(PROTOCOL_DIR)/packet.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-# Clean up object and executable files
 clean:
-	rm -f $(BUILD_DIR)/*.o $(BUILD_DIR)/client $(BUILD_DIR)/server
-
-# Run commands
-run-client: $(CLIENT_TARGET)
-	@echo "Running client..."
-	./$(CLIENT_TARGET)
+	@echo "Cleaning up..."
+	rm -rf $(BUILD_DIR)
+	@echo "Clean complete"
 
 run-server: $(SERVER_TARGET)
-	@echo "Running server..."
+	@echo "Starting server..."
 	./$(SERVER_TARGET)
 
-# Phony targets
-.PHONY: all clean run-client run-server
+run-client: $(CLIENT_TARGET)
+	@echo "Starting client..."
+	@read -p "Enter username (default: $(DEFAULT_USERNAME)): " username; \
+	if [ -z "$$username" ]; then \
+		./$(CLIENT_TARGET) $(DEFAULT_USERNAME); \
+	else \
+		./$(CLIENT_TARGET) "$$username"; \
+	fi
