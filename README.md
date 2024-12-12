@@ -24,9 +24,9 @@ Files:
     Makefile: Defines the build process for the application, specifying compilation and linking steps.
 
 
-Aren Egwuekwr:
+Aren Egwuekwe:
     - Implemented audio and group chat support
-    - Completed protocol design on documentation
+    - Completed final report and protocol design
 
 Omar White-Evans:
     - Implemented FLTK GUI for project
