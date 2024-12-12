@@ -43,8 +43,7 @@ public:
             return;
         }
         
-        // Create display with margin for better appearance
-        display = new Fl_Text_Display(10, 10, w-20, h-80);  // Increased bottom margin
+        display = new Fl_Text_Display(10, 10, w-20, h-80);
         if (!display) {
             std::cerr << "Failed to create text display" << std::endl;
             return;
@@ -52,34 +51,33 @@ public:
         display->buffer(buffer);
         display->wrap_mode(Fl_Text_Display::WRAP_AT_BOUNDS, 0);
         
-        // Create input field with less width to avoid overlap
-        input = new Fl_Input(10, h-60, w-160, 30, "");  // Reduced width and lowered position
+        input = new Fl_Input(10, h-60, w-160, 30, "");  
         if (!input) {
             std::cerr << "Failed to create input field" << std::endl;
             return;
         }
         
-        // Create send button with fixed position
-        send_button = new Fl_Button(w-140, h-60, 60, 30, "Send");  // Adjusted position
+        
+        send_button = new Fl_Button(w-140, h-60, 60, 30, "Send");  
         if (!send_button) {
             std::cerr << "Failed to create send button" << std::endl;
             return;
         }
         send_button->callback(static_send_cb, this);
 
-        // Create quit button with fixed position
-        Fl_Button* quit_button = new Fl_Button(w-70, h-60, 60, 30, "Quit");  // Adjusted position
+        
+        Fl_Button* quit_button = new Fl_Button(w-70, h-60, 60, 30, "Quit");  
         if (!quit_button) {
             std::cerr << "Failed to create quit button" << std::endl;
             return;
         }
         quit_button->callback(static_quit_cb, this);
 
-        // Set window properties for better behavior
-        resizable(display);  // Make only the display resizable
-        set_modal();  // Keep window active
+        
+        resizable(display);  
+        set_modal();  
 
-        // Set input callback for Enter key
+        
         input->when(FL_WHEN_ENTER_KEY);
         input->callback(static_input_cb, this);
         
@@ -121,14 +119,12 @@ private:
 
     static void static_quit_cb(Fl_Widget*, void* v) {
         if (v) {
-            // Send disconnect message
             ChatClient* client = (ChatClient*)v;
             Packet packet;
             packet.message.type = MessageType::DISCONNECT;
             strncpy(packet.message.sender, client->username.c_str(), sizeof(packet.message.sender));
             send(client->socket_fd, &packet, sizeof(packet), 0);
             
-            // Close window
             client->hide();
         }
     }
@@ -164,7 +160,7 @@ private:
             iss >> recipient;
             std::getline(iss, message);
             if (!message.empty() && !recipient.empty()) {
-                message = message.substr(1);  // Remove leading space
+                message = message.substr(1);
                 try {
                     Packet packet = Packet::createPrivateMessage(username, recipient, message);
                     if (send(socket_fd, &packet, sizeof(packet), 0) < 0) {
@@ -202,7 +198,6 @@ private:
 
                     case MessageType::CONNECT:
                     case MessageType::DISCONNECT:
-                        // These messages are handled by the server
                         break;
                 }
                 
@@ -227,7 +222,7 @@ private:
             std::lock_guard<std::mutex> lock(buffer_mutex);
             buffer->append((message + "\n").c_str());
             display->scroll(buffer->count_lines(0, buffer->length()), 0);
-            Fl::awake();  // Thread-safe update
+            Fl::awake();
         } catch (const std::exception& e) {
             std::cerr << "Error appending message: " << e.what() << std::endl;
         }
@@ -267,14 +262,12 @@ int main(int argc, char* argv[]) {
     std::string username = argv[1];
     std::cout << "Starting client with username: " << username << std::endl;
 
-    // Create socket
     int client_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (client_fd < 0) {
         std::cerr << "Failed to create socket" << std::endl;
         return 1;
     }
 
-    // Set up server address
     sockaddr_in server_addr{};
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(8080);
@@ -282,7 +275,6 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Connecting to server..." << std::endl;
     
-    // Connect to server
     if (connect(client_fd, (sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
         std::cerr << "Failed to connect to server" << std::endl;
         close(client_fd);
@@ -291,7 +283,6 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Connected to server, sending connect packet..." << std::endl;
     
-    // Send initial connect packet
     Packet connect_packet = Packet::createConnect(username);
     if (send(client_fd, &connect_packet, sizeof(connect_packet), 0) < 0) {
         std::cerr << "Failed to send connect packet" << std::endl;
@@ -301,7 +292,6 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Creating window..." << std::endl;
     
-    // Create and show window
     ChatClient* window = new ChatClient(800, 600, "Chat Client", client_fd, username);
     window->show();
     

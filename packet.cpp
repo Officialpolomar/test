@@ -13,7 +13,7 @@ enum class MessageType {
 struct ChatMessage {
     MessageType type;
     char sender[32];
-    char recipient[32];  // For private messages
+    char recipient[32];
     char content[1024];
     time_t timestamp;
 };

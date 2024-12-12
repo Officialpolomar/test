@@ -68,7 +68,6 @@ public:
         }
     }
 
-    // Delete copy constructor and assignment operator
     ThreadPool(const ThreadPool&) = delete;
     ThreadPool& operator=(const ThreadPool&) = delete;
 };
